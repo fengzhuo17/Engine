@@ -1457,7 +1457,3 @@ LONG RSDataScan(DWORD Context, const BYTE* pbDataBuff, DWORD Length, DWORD *aRet
 }
 
 
-
-/* new request add 2005-01-31 */
-/* Data sent to engine need relocated */
-/* new code add here */
