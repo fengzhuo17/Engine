@@ -359,24 +359,24 @@ DWORD  LoadRawDB(const char* pLibPath, DWORD Protocol, DWORD max ){
 }
 
 
-void Unloadlib2( PTree root){
+void Unloadlib( PTree root){
 
 	PItem tmp = (PItem)root;
 
 	if ( tmp == NULL ) return;
 
-	if ( tmp->node.left )Unloadlib2( tmp->node.left);
+	if ( tmp->node.left )Unloadlib( tmp->node.left);
 
-	if ( tmp->node.right )Unloadlib2( tmp->node.right);
+	if ( tmp->node.right )Unloadlib( tmp->node.right);
 
 	EngineMfree((PCHAR)tmp);
 }
 
-DWORD  UnloadDBLib(){
+DWORD  UnloadRawDB(){
 		
 	if ( DBTreeRoot.left ){
 		
-		Unloadlib2( DBTreeRoot.left );
+		Unloadlib( DBTreeRoot.left );
 		DBTreeRoot.left = NULL;
 	}
 

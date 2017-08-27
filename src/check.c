@@ -1,6 +1,10 @@
 /*
 function used to check whether a pe is valid. if valid get its infomation
 */
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 BOOL VerifyPE( HANDLE hFile , PeInfoFromFile* pInfo ){
 
@@ -21,10 +25,15 @@ BOOL VerifyPE( HANDLE hFile , PeInfoFromFile* pInfo ){
 
     memset( pInfo, 0, sizeof(PeInfoFromFile) );
 
+#ifdef window
     SetFilePointer( hFile, 0, NULL, FILE_BEGIN );
-    result = ReadFile( hFile, &mz, sizeof( IMAGE_DOS_HEADER), &num, NULL);
+    result = ReadFile( hFile, &mz, sizeof(IMAGE_DOS_HEADER), &num, NULL);
+#else
+    lseek(hFile, 0, SEEK_SET);
+    num = read(hFile, &mz, sizeof(IMAGE_DOS_HEADER));
+#endif
 
-    if ( (!result) || (num != sizeof(IMAGE_DOS_HEADER)) ){
+    if ( num != sizeof(IMAGE_DOS_HEADER) ){
     
         return FALSE;
     }
@@ -37,10 +46,15 @@ BOOL VerifyPE( HANDLE hFile , PeInfoFromFile* pInfo ){
     offset = mz.e_lfanew;
     memset( &nthd, 0, sizeof(IMAGE_NT_HEADERS) );
 
+#ifdef window
     SetFilePointer( hFile, offset, NULL, FILE_BEGIN );
     result = ReadFile( hFile, &nthd, sizeof(IMAGE_NT_HEADERS), &num, NULL);
+#else
+    lseek(hFile, offset, SEEK_SET);
+    num = read(hFile, &nthd, sizeof(IMAGE_NT_HEADERS));
+#endif
 
-    if ( (!result) || (num != sizeof(IMAGE_NT_HEADERS)) ){
+    if ( num != sizeof(IMAGE_NT_HEADERS) ){
     
         return FALSE;
     }
@@ -68,11 +82,15 @@ BOOL VerifyPE( HANDLE hFile , PeInfoFromFile* pInfo ){
 
     offset = mz.e_lfanew + 0x18l + nthd.FileHeader.SizeOfOptionalHeader;
 
+#ifdef window
     SetFilePointer( hFile, offset, NULL, FILE_BEGIN );
-
     result = ReadFile( hFile, pSectionInfo, size, &num, NULL);
+#else
+    lseek(hFile, offset, SEEK_SET);
+    num = read(hFile, pSectionInfo, size);
+#endif
 
-    if( (result == FALSE)||(size != num) ){
+    if( size != num ){
 
         free( pSection );
         return FALSE;
