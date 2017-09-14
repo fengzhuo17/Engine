@@ -1,5 +1,5 @@
-#ifndef WINDOWS
-#define WINDOWS
+#ifndef WINDOWS_PE
+#define WINDOWS_PE
 
 #include "engtypes.h"
 

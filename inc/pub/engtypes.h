@@ -33,4 +33,11 @@ typedef struct _long64{
 #define TRUE   1
 #define FALSE  0
 
+#ifdef LINUX
+#define PATH_SEPERATOR_CHAR '/'
+#define PATH_SEPERATOR_STR "/"
+#else
+#define PATH_SEPERATOR_CHAR '\\'
+#define PATH_SEPERATOR_STR "\\"
+#endif
 #endif

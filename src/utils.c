@@ -1,3 +1,34 @@
+
+
+BOOL MakeFullPath( const PCHAR aSrc, DWORD aSize, PCHAR aDes ){
+
+    DWORD len = 0; BOOL ret = FALSE;
+    
+    if ( aSrc && aDes && aSize ){
+
+        memset( aDes, 0, aSize );
+
+        len = strlen( aSrc );
+        
+        if ( aSrc[len-1] == PATH_SEPERATOR_CHAR ){
+
+            if ( aSize > len ) {
+
+                strcpy( aDes, aSrc ); ret = TRUE;
+            }
+
+        }else{
+
+            if ( aSize > len+1 ){
+
+                strcpy( aDes, aSrc); strcat( aDes, PATH_SEPERATOR_STR );
+                ret = TRUE;
+            }
+        }
+    }
+    return ret; 
+}
+
 #ifdef WINDOWS
 /*
 this funtion is dedicated to Windows, because find can be used in linux
@@ -35,14 +66,14 @@ void BrowseDir( PCHAR aName, FUNPROCESSFILE aFun, void* aPara ){
             info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY
         ){
         
-            sprintf( name, "%s%s\\", aName, info.cFileName );
+            sprintf( name, "%s%s", aName, info.cFileName );
+            strcat( name, PATH_SEPERATOR_STR );
 
             BrowseDir( name, aFun, aPara );
             continue;
         }
 
         sprintf( name, "%s%s", aName, info.cFileName );
-        //printf( "%s\n", name );
 
         if ( aFun ){
 
@@ -60,36 +91,6 @@ int BuildRaw( PCHAR aSourceDir, PCHAR aWorkingDir ){
 
 }
 
-BOOL MakeFullPath( const PCHAR aSrc, DWORD aSize, PCHAR aDes ){
-
-    DWORD len = 0; BOOL ret = FALSE;
-    
-    if ( aSrc && aDes && aSize ){
-
-        memset( aDes, 0, aSize );
-
-        len = strlen( aSrc );
-        
-        if ( aSrc[len-1] == '\\' ){
-
-            if ( aSize > len ) {
-
-                strcpy( aDes, aSrc ); ret = TRUE;
-            }
-
-        }else{
-
-            if ( aSize > len+1 ){
-
-                strcpy( aDes, aSrc); strcat( aDes, "\\" );
-                ret = TRUE;
-            }
-        }
-    
-    }
-
-    return ret; 
-}
 
 #else
 
@@ -103,7 +104,7 @@ BOOL MakeFullPath( const PCHAR aSrc, DWORD aSize, PCHAR aDes ){
 #include <time.h>
 
 void
-BrowseDir( char *aPathName, unsigned long *aFileCnt, unsigned long *aDirCnt, const char* aLog ){
+BrowseDir( char* aPathName, FUNPROCESSFILE aFun, void* aPara ){
 
     DIR *dp;
     struct dirent *entry;
@@ -112,7 +113,7 @@ BrowseDir( char *aPathName, unsigned long *aFileCnt, unsigned long *aDirCnt, con
     unsigned long len = 0;
     long res = 0;
     
-    if ( !aPathName || !aFileCnt || !aDirCnt ) return;
+    if ( !aPathName ) return;
 
     if((dp = opendir(aPathName)) == NULL) {
 
@@ -134,7 +135,7 @@ BrowseDir( char *aPathName, unsigned long *aFileCnt, unsigned long *aDirCnt, con
 
             memset( p_full, 0, len );
             strcpy( p_full, aPathName );
-            strcat( p_full, "/" );
+            strcat( p_full, PATH_SEPERATOR_STR );
             strcat( p_full, entry->d_name );
 
             memset( &statbuf, 0, sizeof( struct stat ) );
@@ -142,16 +143,13 @@ BrowseDir( char *aPathName, unsigned long *aFileCnt, unsigned long *aDirCnt, con
 
             if( S_ISDIR(statbuf.st_mode) ) {
 
-                *aDirCnt +=1;
-                BrowseDir( p_full, aFileCnt, aDirCnt, aLog );
+                BrowseDir( p_full, aFun, aPara );
 
             }else {
-                *aFileCnt += 1;
                 len = strlen( entry->d_name );
                 
                 if ( 1/*entry->d_name[ len-1 ] == '^'*/ ){
 
-                    TestProcessHtml( p_full, aLog );
                 }
             }
 
